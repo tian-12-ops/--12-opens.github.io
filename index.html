@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>拾光 · SoulGlow</title>
+<style>
+  :root{
+    --bg-0:#0b0917;
+    --bg-1:#150f2b;
+    --ink:#f6f1fa;
+    --ink-dim:rgba(246,241,250,.62);
+    --ink-faint:rgba(246,241,250,.38);
+    --glass:rgba(255,255,255,.055);
+    --glass-2:rgba(255,255,255,.09);
+    --line:rgba(255,255,255,.12);
+    --gold:#f4d3a0;
+    --rose:#ff9ecd;
+    --violet:#a78bfa;
+    --sky:#7dd3fc;
+    --grad:linear-gradient(135deg,#ff9ecd 0%,#c4a2ff 45%,#7dd3fc 100%);
+    --shadow:0 24px 60px -18px rgba(0,0,0,.7);
+    --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 700px at 12% -10%, rgba(167,139,250,.30), transparent 60%),
+      radial-gradient(1000px 620px at 95% 8%, rgba(255,158,205,.24), transparent 62%),
+      radial-gradient(900px 700px at 60% 110%, rgba(125,211,252,.20), transparent 60%),
+      linear-gradient(180deg,var(--bg-1),var(--bg-0) 60%);
+    background-attachment:fixed;
+    overflow:hidden;
+  }
+
+  /* ---------- 背景：极光 + 星尘 ---------- */
+  #stars{position:fixed;inset:0;z-index:0;pointer-events:none}
+  .aurora{position:fixed;inset:-20%;z-index:0;pointer-events:none;filter:blur(70px);opacity:.55}
+  .aurora i{position:absolute;display:block;border-radius:50%;mix-blend-mode:screen}
+  .aurora i:nth-child(1){width:46vw;height:46vw;left:-6vw;top:2vh;background:radial-gradient(circle,#a78bfa,transparent 65%);animation:drift1 26s ease-in-out infinite}
+  .aurora i:nth-child(2){width:40vw;height:40vw;right:-8vw;top:14vh;background:radial-gradient(circle,#ff9ecd,transparent 65%);animation:drift2 32s ease-in-out infinite}
+  .aurora i:nth-child(3){width:38vw;height:38vw;left:28vw;bottom:-12vh;background:radial-gradient(circle,#7dd3fc,transparent 65%);animation:drift3 38s ease-in-out infinite}
+  @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,6vh) scale(1.12)}}
+  @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-7vw,10vh) scale(1.08)}}
+  @keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,-8vh) scale(1.15)}}
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.16;
+    background-image:radial-gradient(rgba(255,255,255,.6) .5px, transparent .5px);
+    background-size:3px 3px;mix-blend-mode:overlay}
+
+  /* ---------- 布局 ---------- */
+  .app{position:relative;z-index:2;height:100dvh;display:flex;flex-direction:column;max-width:1180px;margin:0 auto}
+
+  header.top{
+    display:flex;align-items:center;gap:14px;
+    padding:16px 22px 10px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:20px;letter-spacing:.18em}
+  .brand .mark{
+    width:32px;height:32px;border-radius:12px;background:var(--grad);
+    box-shadow:0 0 22px rgba(196,162,255,.55);display:grid;place-items:center;font-size:15px;color:#2a1b3d;font-weight:700
+  }
+  .brand small{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.34em;color:var(--ink-faint);margin-top:2px}
+  .top .spacer{flex:1}
+  .ghost-btn{
+    border:1px solid var(--line);background:var(--glass);color:var(--ink);
+    padding:8px 14px;border-radius:999px;font-size:13px;cursor:pointer;backdrop-filter:blur(14px);
+    transition:.25s;display:flex;align-items:center;gap:7px
+  }
+  .ghost-btn:hover{background:var(--glass-2);transform:translateY(-1px)}
+  .dot{width:7px;height:7px;border-radius:50%;background:#6ee7b7;box-shadow:0 0 10px #6ee7b7}
+
+  nav.tabs{
+    display:flex;gap:6px;padding:6px;margin:0 22px 6px;
+    background:var(--glass);border:1px solid var(--line);border-radius:999px;
+    backdrop-filter:blur(18px);width:max-content
+  }
+  nav.tabs button{
+    border:0;background:transparent;color:var(--ink-dim);cursor:pointer;
+    padding:9px 20px;border-radius:999px;font-size:14px;letter-spacing:.06em;transition:.3s;font-family:var(--sans)
+  }
+  nav.tabs button.on{color:#1a1226;background:var(--grad);font-weight:600;box-shadow:0 6px 20px -6px rgba(255,158,205,.7)}
+  nav.tabs .badge{
+    display:inline-block;min-width:18px;height:18px;line-height:18px;padding:0 5px;margin-left:6px;
+    border-radius:9px;background:#ff6b8b;color:#fff;font-size:11px;text-align:center;vertical-align:1px
+  }
+  nav.tabs button:not(.on) .badge{box-shadow:0 0 12px rgba(255,107,139,.8)}
+
+  main{flex:1;overflow:hidden;position:relative}
+  .view{position:absolute;inset:0;padding:4px 22px 22px;overflow-y:auto;overflow-x:hidden;animation:fade .45s ease}
+  .view::-webkit-scrollbar{width:6px}
+  .view::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:9px}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .hidden{display:none!important}
+
+  /* ---------- 邂逅卡片 ---------- */
+  .stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding-bottom:6px}
+  .deck{position:relative;width:min(360px,86vw);height:min(500px,58vh);perspective:1400px}
+  .card{
+    position:absolute;inset:0;border-radius:28px;overflow:hidden;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);
+    backdrop-filter:blur(22px);box-shadow:var(--shadow);
+    will-change:transform;user-select:none;cursor:grab;
+    transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s
+  }
+  .card.dragging{cursor:grabbing;transition:none}
+  .card .cover{position:absolute;inset:0;overflow:hidden}
+  .card .cover .wash{position:absolute;inset:0;opacity:.92}
+  .card .cover .orb{position:absolute;border-radius:50%;filter:blur(26px);opacity:.75}
+  .card .cover .orb.a{width:220px;height:220px;left:-50px;top:-40px;background:rgba(255,255,255,.45)}
+  .card .cover .orb.b{width:260px;height:260px;right:-70px;bottom:-60px;background:rgba(0,0,0,.28)}
+  .card .face{
+    position:absolute;left:50%;top:26%;transform:translate(-50%,-50%);
+    width:112px;height:112px;border-radius:38px;display:grid;place-items:center;font-size:52px;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.45);
+    box-shadow:0 18px 40px -14px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.5);
+    backdrop-filter:blur(8px)
+  }
+  .card .info{position:absolute;left:0;right:0;bottom:0;padding:20px 22px 22px;
+    background:linear-gradient(to top,rgba(10,8,20,.94),rgba(10,8,20,.72) 45%,transparent)}
+  .card .name{font-family:var(--serif);font-size:25px;letter-spacing:.06em;display:flex;align-items:baseline;gap:10px}
+  .card .name em{font-style:normal;font-size:13px;color:var(--ink-faint);letter-spacing:.1em}
+  .card .meta{margin-top:5px;font-size:13px;color:var(--ink-dim);letter-spacing:.04em}
+  .card .quote{margin-top:12px;font-family:var(--serif);font-size:14.5px;line-height:1.75;color:rgba(246,241,250,.9)}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .tag{font-size:11.5px;padding:5px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.1);color:rgba(255,255,255,.92);letter-spacing:.05em}
+  .stamp{
+    position:absolute;top:22px;padding:7px 16px;border-radius:12px;font-family:var(--serif);
+    font-size:20px;letter-spacing:.14em;opacity:0;transform:rotate(-12deg);transition:.2s;
+    border:2.5px solid;pointer-events:none;z-index:5
+  }
+  .stamp.like{left:20px;color:#6ee7b7;border-color:#6ee7b7;box-shadow:0 0 26px rgba(110,231,183,.5)}
+  .stamp.nope{right:20px;color:#ff8fa8;border-color:#ff8fa8;transform:rotate(12deg);box-shadow:0 0 26px rgba(255,143,168,.5)}
+
+  .acts{display:flex;gap:18px;margin-top:26px;align-items:center}
+  .round{
+    width:56px;height:56px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+    border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px);
+    font-size:21px;color:var(--ink);transition:.25s;box-shadow:0 14px 30px -16px rgba(0,0,0,.8)
+  }
+  .round:hover{transform:translateY(-3px) scale(1.06);background:var(--glass-2)}
+  .round.big{width:70px;height:70px;font-size:27px;background:var(--grad);color:#241633;border:0;
+    box-shadow:0 18px 40px -14px rgba(255,158,205,.75)}
+  .round.big:hover{box-shadow:0 22px 48px -12px rgba(255,158,205,.95)}
+  .hint{margin-top:16px;font-size:12px;color:var(--ink-faint);letter-spacing:.16em;font-family:var(--serif)}
+
+  .empty{text-align:center;padding:60px 10px;color:var(--ink-dim)}
+  .empty .big{font-size:52px;filter:grayscale(.2)}
+  .empty p{font-family:var(--serif);letter-spacing:.1em;margin-top:14px}
+
+  /* ---------- 通用面板 ---------- */
+  .panel{
+    background:var(--glass);border:1px solid var(--line);border-radius:24px;
+    backdrop-filter:blur(22px);box-shadow:var(--shadow);padding:22px
+  }
+  .sec-title{font-family:var(--serif);font-size:17px;letter-spacing:.16em;margin:26px 2px 14px;color:var(--ink);
+    display:flex;align-items:center;gap:10px}
+  .sec-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .sec-title span{font-size:11px;letter-spacing:.2em;color:var(--ink-faint);font-family:var(--sans)}
+
+  /* ---------- 配对 ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
+  .mcard{
+    position:relative;border-radius:22px;overflow:hidden;cursor:pointer;
+    border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(18px);
+    transition:.32s;box-shadow:0 16px 34px -20px rgba(0,0,0,.8)
+  }
+  .mcard:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.28)}
+  .mcard .bg{height:118px;position:relative;overflow:hidden}
+  .mcard .bg .orb{position:absolute;border-radius:50%;filter:blur(20px);opacity:.7}
+  .mcard .bg .orb.a{width:150px;height:150px;left:-40px;top:-50px;background:rgba(255,255,255,.5)}
+  .mcard .bg .orb.b{width:130px;height:130px;right:-30px;bottom:-50px;background:rgba(0,0,0,.3)}
+  .mcard .av{
+    position:absolute;left:50%;top:118px;transform:translate(-50%,-50%);
+    width:66px;height:66px;border-radius:24px;display:grid;place-items:center;font-size:31px;
+    background:rgba(255,255,255,.24);border:1px solid rgba(255,255,255,.5);
+    box-shadow:0 12px 26px -10px rgba(0,0,0,.7);backdrop-filter:blur(6px)
+  }
+  .mcard .body{padding:38px 16px 16px;text-align:center}
+  .mcard .nm{font-family:var(--serif);font-size:17px;letter-spacing:.08em}
+  .mcard .sub{font-size:11.5px;color:var(--ink-faint);margin-top:4px;letter-spacing:.08em}
+  .score{
+    margin-top:12px;display:inline-flex;align-items:center;gap:6px;font-size:12px;letter-spacing:.1em;
+    padding:5px 12px;border-radius:999px;color:var(--gold);
+    background:rgba(244,211,160,.12);border:1px solid rgba(244,211,160,.34)
+  }
+  .mcard .go{margin-top:12px;font-size:12px;color:var(--ink-dim);letter-spacing:.12em}
+
+  /* ---------- 聊天 ---------- */
+  .chat-wrap{display:grid;grid-template-columns:250px 1fr;gap:16px;height:100%;min-height:0}
+  @media(max-width:820px){.chat-wrap{grid-template-columns:1fr}.chat-side{display:none}}
+  .chat-side{overflow-y:auto;padding-right:2px}
+  .chat-side::-webkit-scrollbar{width:5px}
+  .chat-side::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:9px}
+  .row{display:flex;align-items:center;gap:11px;padding:11px;border-radius:16px;cursor:pointer;transition:.25s;border:1px solid transparent}
+  .row:hover{background:var(--glass);border-color:var(--line)}
+  .row.on{background:var(--glass-2);border-color:rgba(255,255,255,.26)}
+  .row .a{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;font-size:21px;flex:0 0 auto;
+    border:1px solid rgba(255,255,255,.3)}
+  .row .t{flex:1;min-width:0}
+  .row .t b{display:block;font-size:14px;font-weight:500;letter-spacing:.04em}
+  .row .t i{display:block;font-style:normal;font-size:12px;color:var(--ink-faint);margin-top:3px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .u{width:8px;height:8px;border-radius:50%;background:#ff6b8b;box-shadow:0 0 10px #ff6b8b}
+
+  .chat-main{display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0}
+  .chat-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .chat-head .a{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;font-size:21px;border:1px solid rgba(255,255,255,.3)}
+  .chat-head .nm{font-family:var(--serif);font-size:17px;letter-spacing:.1em}
+  .chat-head .st{font-size:11.5px;color:#6ee7b7;letter-spacing:.1em;margin-top:3px}
+  .msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+  .msgs::-webkit-scrollbar{width:5px}
+  .msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:9px}
+  .msg{max-width:74%;padding:11px 15px;border-radius:18px;font-size:14px;line-height:1.7;letter-spacing:.02em;
+    animation:pop .35s cubic-bezier(.2,.9,.2,1);word-break:break-word}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:none}}
+  .msg.them{align-self:flex-start;background:var(--glass-2);border:1px solid var(--line);
+    border-bottom-left-radius:6px;backdrop-filter:blur(12px)}
+  .msg.me{align-self:flex-end;background:var(--grad);color:#231634;border-bottom-right-radius:6px;
+    box-shadow:0 12px 26px -14px rgba(255,158,205,.8);font-weight:500}
+  .msg .time{display:block;font-size:10px;opacity:.55;margin-top:5px;letter-spacing:.08em}
+  .typing{align-self:flex-start;display:flex;gap:5px;padding:13px 16px;background:var(--glass-2);
+    border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:6px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--ink-dim);animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+  @keyframes blink{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+  .composer{display:flex;gap:10px;padding:14px;border-top:1px solid var(--line);align-items:center}
+  .composer input{
+    flex:1;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;
+    padding:12px 18px;color:var(--ink);font-size:14px;outline:none;font-family:var(--sans);transition:.25s
+  }
+  .composer input:focus{border-color:rgba(196,162,255,.7);background:rgba(255,255,255,.11)}
+  .composer input::placeholder{color:var(--ink-faint)}
+  .send{border:0;border-radius:999px;padding:12px 22px;background:var(--grad);color:#231634;
+    font-weight:600;font-size:14px;cursor:pointer;letter-spacing:.06em;transition:.25s;
+    box-shadow:0 12px 26px -14px rgba(255,158,205,.8)}
+  .send:hover{transform:translateY(-2px)}
+
+  /* ---------- 我的 ---------- */
+  .me-hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .me-av{width:96px;height:96px;border-radius:34px;display:grid;place-items:center;font-size:44px;
+    background:var(--grad);box-shadow:0 20px 44px -16px rgba(196,162,255,.8);flex:0 0 auto}
+  .me-txt h2{margin:0;font-family:var(--serif);font-size:26px;letter-spacing:.1em;font-weight:500}
+  .me-txt p{margin:8px 0 0;color:var(--ink-dim);font-size:13.5px;line-height:1.8;letter-spacing:.03em}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}
+  .stat{text-align:center;padding:16px 8px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .stat b{display:block;font-family:var(--serif);font-size:24px;color:var(--gold);letter-spacing:.04em}
+  .stat i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-faint);margin-top:6px;letter-spacing:.14em}
+  .chips{display:flex;flex-wrap:wrap;gap:9px}
+  .chip{padding:8px 15px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);
+    font-size:13px;cursor:pointer;transition:.25s;letter-spacing:.05em;color:var(--ink-dim)}
+  .chip:hover{transform:translateY(-2px);color:var(--ink)}
+  .chip.on{background:var(--grad);color:#231634;border-color:transparent;font-weight:600}
+  .field{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  /* ---------- 广场 ---------- */
+  .post{border-radius:22px;overflow:hidden;border:1px solid var(--line);background:var(--glass);
+    backdrop-filter:blur(20px);box-shadow:0 16px 34px -20px rgba(0,0,0,.8);transition:.3s}
+  .post:hover{border-color:rgba(255,255,255,.26)}
+  .post .hd{display:flex;align-items:center;gap:11px;padding:16px 18px 0}
+  .post .hd .a{width:42px;height:42px;border-radius:15px;display:grid;place-items:center;font-size:20px;border:1px solid rgba(255,255,255,.28)}
+  .post .hd .n{font-family:var(--serif);font-size:15.5px;letter-spacing:.08em}
+  .post .hd .m{font-size:11.5px;color:var(--ink-faint);margin-top:3px;letter-spacing:.08em}
+  .post .tx{padding:13px 18px;font-size:14.5px;line-height:1.85;letter-spacing:.03em}
+  .post .ph{height:170px;position:relative;overflow:hidden;margin:0 18px;border-radius:16px}
+  .post .ph .o{position:absolute;border-radius:50%;filter:blur(24px);opacity:.75}
+  .post .ph .o.a{width:170px;height:170px;left:-40px;top:-50px;background:rgba(255,255,255,.55)}
+  .post .ph .o.b{width:190px;height:190px;right:-50px;bottom:-60px;background:rgba(0,0,0,.32)}
+  .post .ph .em{position:absolute;inset:0;display:grid;place-items:center;font-size:54px;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))}
+  .post .ft{display:flex;gap:20px;padding:14px 18px 16px;font-size:13px;color:var(--ink-dim)}
+  .post .ft span{cursor:pointer;display:flex;align-items:center;gap:6px;transition:.24s;letter-spacing:.05em}
+  .post .ft span:hover{color:var(--ink);transform:translateY(-1px)}
+  .post .ft span.on{color:var(--rose)}
+  .field input{flex:1;min-width:180px;background:rgba(255,255,255,.07);border:1px solid var(--line);
+    border-radius:14px;padding:12px 16px;color:var(--ink);outline:none;font-family:var(--sans);font-size:14px}
+  .field input:focus{border-color:rgba(196,162,255,.7)}
+  .btn{border:0;border-radius:14px;padding:12px 22px;background:var(--grad);color:#231634;font-weight:600;
+    cursor:pointer;letter-spacing:.06em;font-size:14px;transition:.25s}
+  .btn:hover{transform:translateY(-2px)}
+
+  /* ---------- 配对成功弹层 ---------- */
+  .mask{position:fixed;inset:0;z-index:50;display:grid;place-items:center;
+    background:rgba(8,6,16,.72);backdrop-filter:blur(10px);animation:fade .3s}
+  .match-modal{width:min(400px,90vw);padding:38px 30px 30px;text-align:center;border-radius:30px;
+    background:linear-gradient(160deg,rgba(255,255,255,.12),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.22);box-shadow:0 40px 90px -30px rgba(0,0,0,.9);
+    animation:zoom .5s cubic-bezier(.2,.9,.2,1)}
+  @keyframes zoom{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+  .rings{position:relative;width:190px;height:190px;margin:0 auto 8px}
+  .rings .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.22);animation:pulse 3s ease-out infinite}
+  .rings .ring:nth-child(2){animation-delay:1s}.rings .ring:nth-child(3){animation-delay:2s}
+  @keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.25);opacity:0}}
+  .duo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:-14px}
+  .duo .a1,.duo .a2{width:78px;height:78px;border-radius:28px;display:grid;place-items:center;font-size:36px;
+    border:1px solid rgba(255,255,255,.45);box-shadow:0 16px 34px -12px rgba(0,0,0,.8);backdrop-filter:blur(6px)}
+  .duo .a2{margin-left:-16px}
+  .match-modal h3{margin:16px 0 6px;font-family:var(--serif);font-size:26px;letter-spacing:.2em;font-weight:500}
+  .match-modal .pct{font-size:13px;color:var(--gold);letter-spacing:.24em}
+  .match-modal p.desc{margin:14px 0 22px;font-size:13.5px;line-height:1.85;color:var(--ink-dim);letter-spacing:.04em}
+  .modal-acts{display:flex;gap:12px;justify-content:center}
+  .modal-acts .btn.ghost{background:rgba(255,255,255,.08);color:var(--ink);border:1px solid var(--line)}
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:38px;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:10px;align-items:center}
+  .toast{padding:12px 22px;border-radius:999px;background:rgba(20,14,32,.92);border:1px solid var(--line);
+    color:var(--ink);font-size:13.5px;letter-spacing:.06em;backdrop-filter:blur(16px);
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.9);animation:up .35s cubic-bezier(.2,.9,.2,1)}
+  @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+  @media(max-width:640px){
+    header.top{padding:14px 16px 8px}
+    nav.tabs{margin:0 16px 6px;width:auto;overflow-x:auto;scrollbar-width:none}
+    nav.tabs::-webkit-scrollbar{display:none}
+    nav.tabs button{padding:8px 15px;font-size:13px;white-space:nowrap}
+    .view{padding:4px 16px 18px}
+    .brand small{display:none}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div class="aurora"><i></i><i></i><i></i></div>
+<div class="grain"></div>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">拾</div>
+      <div>拾光<small>SOULGLOW</small></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="ghost-btn" id="refreshBtn">✦ 新的邂逅</button>
+    <button class="ghost-btn" id="statusBtn"><span class="dot"></span><span id="statusTxt">今日在线</span></button>
+  </header>
+
+  <nav class="tabs">
+    <button data-view="discover" class="on">邂逅</button>
+    <button data-view="square">广场</button>
+    <button data-view="match">配对</button>
+    <button data-view="chat">星语 <span class="badge hidden" id="chatBadge">0</span></button>
+    <button data-view="me">我的</button>
+  </nav>
+
+  <main>
+    <!-- 邂逅 -->
+    <section class="view" id="view-discover">
+      <div class="stage">
+        <div class="deck" id="deck"></div>
+        <div class="acts">
+          <button class="round" id="passBtn" title="跳过">✕</button>
+          <button class="round big" id="likeBtn" title="心动">♡</button>
+          <button class="round" id="superBtn" title="点亮">✦</button>
+        </div>
+        <div class="hint" id="hintTxt">拖动卡片 · 向左错过 · 向右心动</div>
+      </div>
+    </section>
+
+    <!-- 广场 -->
+    <section class="view hidden" id="view-square">
+      <div class="panel" style="padding:16px 20px">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="width:38px;height:38px;border-radius:14px;display:grid;place-items:center;font-size:19px;background:var(--grad);flex:0 0 auto" id="postAv">🌙</div>
+          <input id="postInput" placeholder="此刻在想什么？说给懂的人听…" maxlength="80"
+            style="flex:1;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;padding:11px 18px;color:var(--ink);outline:none;font-family:var(--sans);font-size:14px" />
+          <button class="btn" id="postBtn">发布</button>
+        </div>
+      </div>
+      <div class="sec-title">此刻 <span id="postCount">0 条心事</span></div>
+      <div id="feed" style="display:flex;flex-direction:column;gap:14px"></div>
+    </section>
+
+    <!-- 配对 -->
+    <section class="view hidden" id="view-match">
+      <div class="panel" style="padding:20px 22px">
+        <div style="font-family:var(--serif);font-size:19px;letter-spacing:.14em">灵魂共振</div>
+        <div style="margin-top:8px;font-size:13px;color:var(--ink-dim);line-height:1.8;letter-spacing:.03em">
+          每一次心动都会化作一枚星轨，彼此点亮的人，会在这里相遇。
+        </div>
+      </div>
+      <div class="sec-title">已配对 <span id="matchCount">0 位</span></div>
+      <div class="grid" id="matchGrid"></div>
+      <div class="sec-title">心动过的人 <span id="likeCount">0 位</span></div>
+      <div class="grid" id="likeGrid"></div>
+    </section>
+
+    <!-- 星语 -->
+    <section class="view hidden" id="view-chat">
+      <div class="panel chat-wrap" style="padding:0">
+        <div class="chat-side" id="chatSide"></div>
+        <div class="chat-main" id="chatMain"></div>
+      </div>
+    </section>
+
+    <!-- 我的 -->
+    <section class="view hidden" id="view-me">
+      <div class="panel me-hero">
+        <div class="me-av" id="meAv">🌙</div>
+        <div class="me-txt" style="flex:1;min-width:220px">
+          <h2 id="meName">拾光旅人</h2>
+          <p id="meSign">在漫长的夜里，收集一点点温柔的光。</p>
+          <div class="field" style="margin-top:14px">
+            <input id="nameInput" placeholder="给自己一个名字" maxlength="12" />
+            <input id="signInput" placeholder="写一句此刻的心情" maxlength="30" />
+            <button class="btn" id="saveMe">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b id="stLike">0</b><i>心动</i></div>
+        <div class="stat"><b id="stMatch">0</b><i>配对</i></div>
+        <div class="stat"><b id="stMsg">0</b><i>星语</i></div>
+      </div>
+
+      <div class="sec-title">灵魂标签 <span>选择让你发光的词</span></div>
+      <div class="panel"><div class="chips" id="tagChips"></div></div>
+
+      <div class="sec-title">偏好 <span>决定谁会与你相遇</span></div>
+      <div class="panel">
+        <div class="chips" id="prefChips"></div>
+        <div style="margin-top:16px;font-size:12.5px;color:var(--ink-faint);letter-spacing:.06em;line-height:1.8">
+          偏好会影响邂逅卡片的排序，契合度越高的人越早出现。
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============ 数据 ============ */
+const PEOPLE = [
+  {id:1,name:"沈知遥",age:26,city:"杭州",emoji:"🌿",sign:"喜欢在雨天煮一壶茶，看雾从山腰升起。",
+   quote:"想找一个能一起安静看雨的人。",tags:["摄影","独立音乐","山野","慢生活"],c1:"#a78bfa",c2:"#7dd3fc"},
+  {id:2,name:"陆星河",age:29,city:"上海",emoji:"🌙",sign:"写代码到凌晨，偶尔写诗。",
+   quote:"如果宇宙是冷的，那我们互相取暖吧。",tags:["科幻","天文","爵士","夜跑"],c1:"#6366f1",c2:"#a78bfa"},
+  {id:3,name:"苏晚",age:24,city:"成都",emoji:"🍵",sign:"开一家很小的花店，养两只猫。",
+   quote:"希望你懂我的沉默，也接住我的热闹。",tags:["花艺","猫","烘焙","民谣"],c1:"#ff9ecd",c2:"#fca5a5"},
+  {id:4,name:"江屿",age:31,city:"厦门",emoji:"🌊",sign:"潜水、冲浪，收集每一片海的颜色。",
+   quote:"海会记得所有被说过的话。",tags:["潜水","旅行","咖啡","纪录片"],c1:"#38bdf8",c2:"#5eead4"},
+  {id:5,name:"林听白",age:27,city:"北京",emoji:"📚",sign:"在旧书店打工，读很多很多小说。",
+   quote:"书页之间有我们的暗号。",tags:["文学","黑胶","美术馆","写作"],c1:"#f4d3a0",c2:"#fb923c"},
+  {id:6,name:"温言",age:25,city:"广州",emoji:"🎐",sign:"做甜品，也做白日梦。",
+   quote:"甜的东西要和温柔的人分享。",tags:["甜品","插画","手账","香氛"],c1:"#fda4af",c2:"#c4b5fd"},
+  {id:7,name:"顾清和",age:30,city:"南京",emoji:"🍂",sign:"园林设计师，喜欢旧的东西。",
+   quote:"慢慢来，好风景都在路上。",tags:["建筑","古琴","茶道","徒步"],c1:"#86efac",c2:"#7dd3fc"},
+  {id:8,name:"叶眠",age:23,city:"重庆",emoji:"🌌",sign:"跳舞、熬夜、热爱一切发光的事物。",
+   quote:"把今天活得亮一点。",tags:["现代舞","电子乐","市集","旅行"],c1:"#e879f9",c2:"#818cf8"},
+  {id:9,name:"白鹿鸣",age:28,city:"西安",emoji:"🏔️",sign:"爬过很多山，也迷过很多路。",
+   quote:"我们一起去看第一场雪吧。",tags:["登山","露营","摄影","精酿"],c1:"#5eead4",c2:"#a78bfa"},
+  {id:10,name:"南以宁",age:26,city:"苏州",emoji:"🕊️",sign:"安静，但心里有一整片海。",
+   quote:"愿你在我面前可以不坚强。",tags:["钢琴","阅读","植物","慢跑"],c1:"#c4b5fd",c2:"#f9a8d4"},
+  {id:11,name:"祁夜",age:32,city:"深圳",emoji:"🎬",sign:"拍短片，记录陌生人的一分钟。",
+   quote:"镜头会替我记得你。",tags:["电影","滑板","调酒","城市漫游"],c1:"#fbbf24",c2:"#fb7185"},
+  {id:12,name:"宋拾一",age:24,city:"长沙",emoji:"✨",sign:"星空爱好者，相信巧合是安排好的。",
+   quote:"如果我们在同一片星空下抬头。",tags:["星空","露营","吉他","诗"],c1:"#818cf8",c2:"#7dd3fc"}
+];
+
+const ALL_TAGS = ["摄影","旅行","音乐","文学","电影","咖啡","山野","海洋","猫","甜品","徒步","天文","插画","慢生活","夜跑","写作"];
+
+const REPLIES = [
+  "哈哈，你说的这个我也很喜欢 ✨",
+  "那我们算是想到一块儿去了。",
+  "今天刚好也遇到了一件很像的事，讲给你听。",
+  "和你聊天的时候，时间会变慢一点。",
+  "周末要不要一起去走走？我知道一个很安静的地方。",
+  "这句话我要记下来 🌙",
+  "我刚刚在想，你会喜欢什么样的夜晚。",
+  "嗯，我懂你的意思。",
+  "那就这么说定了，不许反悔哦。",
+  "你比我想象中还要有趣一点。"
+];
+const OPENERS = [
+  "嗨，很高兴在这里遇到你 ✨",
+  "你的那句话让我想了很久。",
+  "今晚的星空格外好看，你看到了吗？",
+  "要不要交换一个最近在听的歌单？"
+];
+
+/* ============ 状态 ============ */
+const KEY = "soulglow.v1";
+const state = load() || {
+  me:{name:"拾光旅人",sign:"在漫长的夜里，收集一点点温柔的光。",emoji:"🌙",tags:["摄影","慢生活","文学"]},
+  prefs:["摄影","山野","音乐"],
+  likes:[], passed:[], matches:[], msgs:{}, seen:{}, posts:[]
+};
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+/* ============ 工具 ============ */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const rnd = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const hhmm = d => String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+
+function toast(txt){
+  const el = document.createElement("div");
+  el.className = "toast"; el.textContent = txt;
+  $("#toast").appendChild(el);
+  setTimeout(()=>{ el.style.transition=".4s"; el.style.opacity="0"; el.style.transform="translateY(-10px)";
+    setTimeout(()=>el.remove(),400); }, 2200);
+}
+
+function fitScore(p){
+  const shared = p.tags.filter(t => state.prefs.includes(t)).length;
+  const base = 62 + shared*7 + (p.tags.filter(t=>state.me.tags.includes(t)).length)*4;
+  return Math.min(99, base + rnd(-3,3));
+}
+
+/* ============ 星尘背景 ============ */
+(function stars(){
+  const cv = $("#stars"), ctx = cv.getContext("2d");
+  let W,H,ps=[];
+  function resize(){
+    W = cv.width = innerWidth*devicePixelRatio; H = cv.height = innerHeight*devicePixelRatio;
+    cv.style.width = innerWidth+"px"; cv.style.height = innerHeight+"px";
+    ps = Array.from({length:Math.min(140,Math.round(innerWidth/12))},()=>({
+      x:Math.random()*W, y:Math.random()*H, r:(Math.random()*1.4+.3)*devicePixelRatio,
+      s:Math.random()*.22+.04, a:Math.random()*.6+.2, p:Math.random()*Math.PI*2
+    }));
+  }
+  resize(); addEventListener("resize",resize);
+  (function loop(){
+    ctx.clearRect(0,0,W,H);
+    for(const p of ps){
+      p.y -= p.s*devicePixelRatio; if(p.y < -10){ p.y = H+10; p.x = Math.random()*W; }
+      p.p += .02;
+      const al = p.a*(.55+.45*Math.sin(p.p));
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283);
+      ctx.fillStyle = `rgba(255,255,255,${al})`; ctx.fill();
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+
+/* ============ 卡片 ============ */
+let queue = [];
+function buildQueue(){
+  const pool = PEOPLE.filter(p => !state.likes.includes(p.id) && !state.passed.includes(p.id) && !state.matches.includes(p.id));
+  pool.sort((a,b)=> fitScore(b)-fitScore(a));
+  queue = pool.slice(0,10);
+  renderDeck();
+}
+
+function cardHTML(p, i){
+  const sc = fitScore(p);
+  return `<article class="card" data-id="${p.id}" style="z-index:${20-i};transform:translateY(${i*9}px) scale(${1-i*0.035});opacity:${i<3?1:0}">
+    <div class="cover">
+      <div class="wash" style="background:linear-gradient(160deg,${p.c1},${p.c2})"></div>
+      <div class="orb a"></div><div class="orb b"></div>
+    </div>
+    <div class="face">${p.emoji}</div>
+    <div class="stamp like">心动</div>
+    <div class="stamp nope">错过</div>
+    <div class="info">
+      <div class="name">${p.name}<em>${p.age} · ${p.city}</em></div>
+      <div class="meta">灵魂契合度 <b style="color:var(--gold)">${sc}%</b></div>
+      <div class="quote">「${p.quote}」</div>
+      <div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+    </div>
+  </article>`;
+}
+
+function renderDeck(){
+  const deck = $("#deck");
+  if(!queue.length){
+    deck.innerHTML = `<div class="empty"><div class="big">🌌</div><p>今日的星辰已看过</p>
+      <p style="font-size:12.5px;color:var(--ink-faint)">明天再来，或者调整偏好遇见新的人</p></div>`;
+    return;
+  }
+  deck.innerHTML = queue.map(cardHTML).join("");
+  bindTop();
+}
+
+function bindTop(){
+  const top = $("#deck .card");
+  if(!top) return;
+  let sx=0, sy=0, dx=0, dy=0, dragging=false;
+
+  const down = e => { dragging=true; top.classList.add("dragging");
+    sx = e.clientX; sy = e.clientY; top.setPointerCapture?.(e.pointerId); };
+  const move = e => {
+    if(!dragging) return;
+    dx = e.clientX-sx; dy = e.clientY-sy;
+    const rot = dx/16;
+    top.style.transform = `translate(${dx}px,${dy*0.35}px) rotate(${rot}deg)`;
+    const like = top.querySelector(".stamp.like"), nope = top.querySelector(".stamp.nope");
+    like.style.opacity = Math.min(1, dx/90);
+    nope.style.opacity = Math.min(1, -dx/90);
+  };
+  const up = () => {
+    if(!dragging) return;
+    dragging=false; top.classList.remove("dragging");
+    if(dx > 110) swipe("like");
+    else if(dx < -110) swipe("pass");
+    else { top.style.transform = "";
+      top.querySelector(".stamp.like").style.opacity = 0;
+      top.querySelector(".stamp.nope").style.opacity = 0; }
+    dx=dy=0;
+  };
+  top.addEventListener("pointerdown",down);
+  top.addEventListener("pointermove",move);
+  top.addEventListener("pointerup",up);
+  top.addEventListener("pointercancel",up);
+  top.addEventListener("pointerleave",up);
+}
+
+function swipe(kind){
+  const top = $("#deck .card");
+  if(!top) return;
+  const id = +top.dataset.id;
+  const dir = kind==="like" ? 1 : -1;
+  top.style.transition = "transform .55s cubic-bezier(.2,.8,.2,1), opacity .5s";
+  top.style.transform = `translate(${dir*620}px,-40px) rotate(${dir*26}deg)`;
+  top.style.opacity = 0;
+  const stamp = top.querySelector(kind==="like"?".stamp.like":".stamp.nope");
+  stamp.style.opacity = 1;
+  setTimeout(()=>{ top.remove(); queue.shift(); afterSwipe(id,kind); }, 380);
+}
+
+function afterSwipe(id, kind){
+  if(kind === "pass"){ state.passed.push(id); save(); return; }
+  state.likes.push(id);
+  const p = PEOPLE.find(x=>x.id===id);
+  const sc = fitScore(p);
+  const isMatch = sc >= 74 || Math.random() < .38;
+  if(isMatch){
+    if(!state.matches.includes(id)) state.matches.unshift(id);
+    state.msgs[id] = state.msgs[id] || [{from:"them",text:pick(OPENERS),t:hhmm(new Date())}];
+    state.seen[id] = false;
+    showMatchModal(p, sc);
+  }else{
+    toast(`已心动 · ${p.name}`);
+  }
+  save(); refreshUI();
+}
+
+function showMatchModal(p, sc){
+  const m = document.createElement("div");
+  m.className = "mask";
+  m.innerHTML = `<div class="match-modal">
+    <div class="rings">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="duo">
+        <div class="a1" style="background:linear-gradient(140deg,#c4b5fd,#7dd3fc)">${state.me.emoji}</div>
+        <div class="a2" style="background:linear-gradient(140deg,${p.c1},${p.c2})">${p.emoji}</div>
+      </div>
+    </div>
+    <h3>灵魂共振</h3>
+    <div class="pct">契合度 ${sc}%</div>
+    <p class="desc">你和 <b>${p.name}</b> 同时点亮了彼此。<br/>星轨已经连成，去说第一句话吧。</p>
+    <div class="modal-acts">
+      <button class="btn ghost" data-act="later">稍后再说</button>
+      <button class="btn" data-act="chat">去聊天</button>
+    </div>
+  </div>`;
+  document.body.appendChild(m);
+  m.addEventListener("click", e=>{
+    const act = e.target.dataset.act;
+    if(act === "chat"){ m.remove(); go("chat"); openChat(p.id); }
+    else if(act === "later"){ m.remove(); }
+    if(e.target === m) m.remove();
+  });
+}
+
+/* ============ 配对页 ============ */
+function renderMatches(){
+  const g = $("#matchGrid"), l = $("#likeGrid");
+  $("#matchCount").textContent = state.matches.length + " 位";
+  $("#likeCount").textContent = state.likes.length + " 位";
+  g.innerHTML = state.matches.length ? state.matches.map(id=>{
+    const p = PEOPLE.find(x=>x.id===id); const sc = fitScore(p);
+    return `<div class="mcard" data-id="${p.id}">
+      <div class="bg" style="background:linear-gradient(150deg,${p.c1},${p.c2})"><div class="orb a"></div><div class="orb b"></div></div>
+      <div class="av">${p.emoji}</div>
+      <div class="body">
+        <div class="nm">${p.name}</div>
+        <div class="sub">${p.age} · ${p.city}</div>
+        <div class="score">✦ ${sc}% 契合</div>
+        <div class="go">说点什么 →</div>
+      </div></div>`;
+  }).join("") : `<div class="empty" style="grid-column:1/-1"><div class="big">🫧</div><p>还没有人点亮你</p></div>`;
+
+  const only = state.likes.filter(id=>!state.matches.includes(id));
+  l.innerHTML = only.length ? only.map(id=>{
+    const p = PEOPLE.find(x=>x.id===id);
+    return `<div class="mcard" data-id="${p.id}" data-pending="1">
+      <div class="bg" style="background:linear-gradient(150deg,${p.c1},${p.c2});filter:saturate(.6) brightness(.75)"><div class="orb a"></div><div class="orb b"></div></div>
+      <div class="av">${p.emoji}</div>
+      <div class="body">
+        <div class="nm">${p.name}</div>
+        <div class="sub">${p.age} · ${p.city}</div>
+        <div class="score" style="color:var(--ink-faint);border-color:var(--line);background:rgba(255,255,255,.05)">等待回应</div>
+      </div></div>`;
+  }).join("") : `<div class="empty" style="grid-column:1/-1"><div class="big">🌙</div><p>心动会留在这里</p></div>`;
+
+  $$("#matchGrid .mcard").forEach(c=>c.onclick=()=>{ go("chat"); openChat(+c.dataset.id); });
+  $$("#likeGrid .mcard").forEach(c=>c.onclick=()=>toast("还在等对方点亮 ✨"));
+}
+
+/* ============ 聊天 ============ */
+let currentChat = null;
+function renderChatSide(){
+  const ids = [...state.matches];
+  const side = $("#chatSide");
+  if(!ids.length){
+    side.innerHTML = `<div class="empty"><div class="big">🫧</div><p>还没有连接</p></div>`;
+    $("#chatMain").innerHTML = `<div class="empty" style="margin:auto"><div class="big">🌌</div><p>先去邂逅，遇见那个共振的人</p></div>`;
+    currentChat = null; return;
+  }
+  side.innerHTML = ids.map(id=>{
+    const p = PEOPLE.find(x=>x.id===id);
+    const msgs = state.msgs[id] || [];
+    const last = msgs[msgs.length-1];
+    const un = !state.seen[id];
+    return `<div class="row ${currentChat===id?"on":""}" data-id="${id}">
+      <div class="a" style="background:linear-gradient(140deg,${p.c1},${p.c2})">${p.emoji}</div>
+      <div class="t"><b>${p.name}</b><i>${last?last.text:"还没有说话"}</i></div>
+      ${un?'<div class="u"></div>':""}
+    </div>`;
+  }).join("");
+  $$("#chatSide .row").forEach(r=>r.onclick=()=>openChat(+r.dataset.id));
+  if(currentChat==null || !ids.includes(currentChat)) openChat(ids[0]);
+}
+
+function openChat(id){
+  currentChat = id;
+  state.seen[id] = true; save();
+  const p = PEOPLE.find(x=>x.id===id);
+  const msgs = state.msgs[id] || [];
+  $("#chatMain").innerHTML = `
+    <div class="chat-head">
+      <div class="a" style="background:linear-gradient(140deg,${p.c1},${p.c2})">${p.emoji}</div>
+      <div style="flex:1">
+        <div class="nm">${p.name}</div>
+        <div class="st">✦ 灵魂契合 ${fitScore(p)}% · 在线</div>
+      </div>
+      <button class="ghost-btn" id="backList">返回</button>
+    </div>
+    <div class="msgs" id="msgs">${msgs.map(m=>
+      `<div class="msg ${m.from==="me"?"me":"them"}">${escapeHTML(m.text)}<span class="time">${m.t}</span></div>`).join("")}</div>
+    <form class="composer" id="composer">
+      <input id="input" placeholder="写一句温柔的话…" autocomplete="off" maxlength="120" />
+      <button class="send" type="submit">发送</button>
+    </form>`;
+  const box = $("#msgs"); box.scrollTop = box.scrollHeight;
+  $("#composer").onsubmit = e => { e.preventDefault(); sendMsg(); };
+  $("#backList").onclick = () => { currentChat=null; renderChatSide(); };
+  renderChatSide(); updateBadge();
+}
+
+function escapeHTML(s){ return s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+function sendMsg(){
+  const inp = $("#input"); const text = inp.value.trim();
+  if(!text || currentChat==null) return;
+  inp.value = "";
+  const id = currentChat;
+  state.msgs[id] = state.msgs[id] || [];
+  state.msgs[id].push({from:"me",text,t:hhmm(new Date())});
+  save();
+  const box = $("#msgs");
+  box.insertAdjacentHTML("beforeend", `<div class="msg me">${escapeHTML(text)}<span class="time">${hhmm(new Date())}</span></div>`);
+  box.scrollTop = box.scrollHeight;
+  refreshUI();
+
+  setTimeout(()=>{
+    box.insertAdjacentHTML("beforeend", `<div class="typing"><i></i><i></i><i></i></div>`);
+    box.scrollTop = box.scrollHeight;
+    setTimeout(()=>{
+      box.querySelector(".typing")?.remove();
+      const reply = pick(REPLIES);
+      state.msgs[id].push({from:"them",text:reply,t:hhmm(new Date())});
+      save();
+      box.insertAdjacentHTML("beforeend", `<div class="msg them">${escapeHTML(reply)}<span class="time">${hhmm(new Date())}</span></div>`);
+      box.scrollTop = box.scrollHeight;
+      refreshUI();
+    }, rnd(900,1700));
+  }, 500);
+}
+
+function updateBadge(){
+  const un = state.matches.filter(id=>!state.seen[id]).length;
+  const b = $("#chatBadge");
+  b.textContent = un; b.classList.toggle("hidden", un===0);
+}
+
+/* ============ 我的 ============ */
+function renderMe(){
+  $("#meName").textContent = state.me.name;
+  $("#meSign").textContent = state.me.sign;
+  $("#meAv").textContent = state.me.emoji;
+  $("#nameInput").value = state.me.name;
+  $("#signInput").value = state.me.sign;
+  $("#stLike").textContent = state.likes.length;
+  $("#stMatch").textContent = state.matches.length;
+  $("#stMsg").textContent = Object.values(state.msgs).reduce((n,m)=>n+m.length,0);
+
+  $("#tagChips").innerHTML = ALL_TAGS.map(t=>
+    `<div class="chip ${state.me.tags.includes(t)?"on":""}" data-t="${t}">${t}</div>`).join("");
+  $$("#tagChips .chip").forEach(c=>c.onclick=()=>{
+    const t = c.dataset.t, i = state.me.tags.indexOf(t);
+    if(i>=0) state.me.tags.splice(i,1); else if(state.me.tags.length<6) state.me.tags.push(t);
+    else return toast("最多选择 6 个灵魂标签");
+    save(); renderMe();
+  });
+
+  $("#prefChips").innerHTML = ALL_TAGS.map(t=>
+    `<div class="chip ${state.prefs.includes(t)?"on":""}" data-t="${t}">${t}</div>`).join("");
+  $$("#prefChips .chip").forEach(c=>c.onclick=()=>{
+    const t = c.dataset.t, i = state.prefs.indexOf(t);
+    if(i>=0) state.prefs.splice(i,1); else if(state.prefs.length<5) state.prefs.push(t);
+    else return toast("最多选择 5 个偏好");
+    save(); renderMe(); buildQueue();
+  });
+}
+
+$("#saveMe").onclick = () => {
+  const n = $("#nameInput").value.trim(), s = $("#signInput").value.trim();
+  if(n) state.me.name = n;
+  if(s) state.me.sign = s;
+  save(); renderMe(); toast("已保存 ✦ 新的你");
+};
+
+/* ============ 广场 ============ */
+const POSTS = [
+  {id:101,uid:1,text:"雨停了，山腰的雾正在往上走。快门按下的那一秒，觉得今年的秋天终于开始了。",emoji:"🌫️",time:"12分钟前",likes:24,liked:false,cmt:6},
+  {id:102,uid:8,text:"凌晨三点的排练室，汗和灯一起落下来。身体记得所有没说出口的话。",emoji:"💫",time:"38分钟前",likes:51,liked:false,cmt:12},
+  {id:103,uid:3,text:"今天的花卖完了，剩下一支洋桔梗，插在自己的杯子里。它叫『不变的爱』。",emoji:"🌸",time:"1小时前",likes:88,liked:false,cmt:19},
+  {id:104,uid:9,text:"爬到山顶的时候云刚好散开。想有人也在同一秒抬头。",emoji:"🏔️",time:"2小时前",likes:63,liked:false,cmt:8},
+  {id:105,uid:11,text:"拍了一个陌生人的一分钟。她说她在等人，等了四年。我没敢问等到了没有。",emoji:"🎬",time:"3小时前",likes:120,liked:false,cmt:31},
+  {id:106,uid:12,text:"猎户座升起来了。把望远镜借给路过的小孩，他叫了一声「哇」。今晚值了。",emoji:"🔭",time:"5小时前",likes:77,liked:false,cmt:14}
+];
+
+function renderFeed(){
+  $("#postAv").textContent = state.me.emoji;
+  const mine = state.posts || [];
+  const all = [...mine, ...POSTS];
+  $("#postCount").textContent = all.length + " 条心事";
+  $("#feed").innerHTML = all.map(p=>{
+    const isMe = p.uid === "me";
+    const u = isMe ? {name:state.me.name, city:"此刻", c1:"#c4b5fd", c2:"#7dd3fc"} : PEOPLE.find(x=>x.id===p.uid);
+    return `<div class="post" data-id="${p.id}">
+      <div class="hd">
+        <div class="a" style="background:linear-gradient(140deg,${u.c1},${u.c2})">${isMe?state.me.emoji:u.emoji}</div>
+        <div><div class="n">${u.name}</div><div class="m">${isMe?"刚刚":p.time} · ${isMe?"我":u.city}</div></div>
+      </div>
+      <div class="tx">${escapeHTML(p.text)}</div>
+      ${p.emoji?`<div class="ph" style="background:linear-gradient(150deg,${isMe?"#a78bfa":u.c1},${isMe?"#7dd3fc":u.c2})">
+        <div class="o a"></div><div class="o b"></div><div class="em">${p.emoji}</div></div>`:""}
+      <div class="ft">
+        <span data-act="like" class="${p.liked?"on":""}">${p.liked?"♥":"♡"} ${p.likes}</span>
+        <span data-act="cmt">❍ ${p.cmt} 条回声</span>
+        ${isMe?'<span data-act="del" style="margin-left:auto;color:var(--ink-faint)">删除</span>':""}
+      </div>
+    </div>`;
+  }).join("");
+
+  $$("#feed .post").forEach(el=>{
+    const id = +el.dataset.id;
+    const find = () => (state.posts||[]).find(x=>x.id===id) || POSTS.find(x=>x.id===id);
+    el.querySelector('[data-act="like"]').onclick = ()=>{
+      const p = find(); p.liked = !p.liked; p.likes += p.liked?1:-1; save(); renderFeed();
+    };
+    el.querySelector('[data-act="cmt"]').onclick = ()=>{
+      const p = find(); p.cmt++; save(); renderFeed(); toast("已送出一条回声 ✨");
+    };
+    const del = el.querySelector('[data-act="del"]');
+    if(del) del.onclick = ()=>{ state.posts = state.posts.filter(x=>x.id!==id); save(); renderFeed(); toast("已删除"); };
+  });
+}
+
+$("#postBtn").onclick = ()=>{
+  const t = $("#postInput").value.trim();
+  if(!t) return toast("先写点什么吧");
+  state.posts = state.posts || [];
+  state.posts.unshift({id:Date.now(),uid:"me",text:t,emoji:pick(["🌙","✨","🫧","🍃","🌌"]),likes:0,liked:false,cmt:0});
+  $("#postInput").value = "";
+  save(); renderFeed(); toast("已发布到此刻 ✦");
+};
+$("#postInput").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#postBtn").click(); });
+
+/* ============ 切换 ============ */
+function go(v){
+  $$("nav.tabs button").forEach(b=>b.classList.toggle("on", b.dataset.view===v));
+  $$(".view").forEach(s=>s.classList.toggle("hidden", s.id !== "view-"+v));
+  if(v==="square") renderFeed();
+  if(v==="match") renderMatches();
+  if(v==="chat") renderChatSide();
+  if(v==="me") renderMe();
+}
+$$("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.view));
+
+$("#likeBtn").onclick = ()=>swipe("like");
+$("#passBtn").onclick = ()=>swipe("pass");
+$("#superBtn").onclick = ()=>{ toast("✦ 已点亮，对方会优先看到你"); swipe("like"); };
+$("#refreshBtn").onclick = ()=>{
+  state.passed = state.passed.slice(-4); buildQueue(); toast("新的星光已送达 ✨");
+};
+$("#statusBtn").onclick = ()=>{
+  const on = $("#statusTxt").textContent === "今日在线";
+  $("#statusTxt").textContent = on ? "隐身中" : "今日在线";
+  $(".dot").style.background = on ? "rgba(255,255,255,.3)" : "#6ee7b7";
+  toast(on ? "已隐身，不再出现在别人的星空" : "已上线，等待相遇");
+};
+addEventListener("keydown", e=>{
+  if(!$("#view-discover").classList.contains("hidden")){
+    if(e.key==="ArrowLeft") swipe("pass");
+    if(e.key==="ArrowRight") swipe("like");
+  }
+});
+
+function refreshUI(){ updateBadge(); renderMe(); renderMatches(); }
+
+/* ============ 启动 ============ */
+buildQueue();
+updateBadge();
+renderMe();
+</script>
+</body>
+</html>
